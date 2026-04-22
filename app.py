@@ -32,7 +32,7 @@ def index():
 def get_posts():
     user_id = request.cookies.get("user_id")
 
-    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    conn = psycopg2.connect(os.environ["DATABASE_URL"],sslmode="require")
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -61,7 +61,7 @@ def create_post():
  date = request.form.get("date")
  post_id = request.form.get("postID")
  print(post_id)
- conn = psycopg2.connect(os.environ["DATABASE_URL"])
+ conn = psycopg2.connect(os.environ["DATABASE_URL"],sslmode="require")
  cursor = conn.cursor()
  cursor.execute("INSERT INTO tweets (text, likes, date) VALUES (%s, %s, %s) RETURNING id", [text, 0, date])
  x = cursor.fetchone()
@@ -77,7 +77,7 @@ def update_post():
     post_id = request.form.get("postID")
     liked = request.form.get("likes") == "true"
     print(liked)
-    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    conn = psycopg2.connect(os.environ["DATABASE_URL"],sslmode="require")
     cursor = conn.cursor()
 
     # check if already liked
