@@ -95,7 +95,7 @@ function post_tweets(text,likes,POEID) {
  
 
 let postHTML = `
-     <div class="post" id="post`+ response[0] +`">
+     <div class="post" id="post`+ response.id +`">
       <p class="content">${text}</p>
       <div id="uhuh">
       
@@ -112,7 +112,7 @@ let postHTML = `
       </div>
 
       </div>
-      <p class="date">posted on: ${(response[1].split(/[T\:\s]+/))[0]}</p>
+      <p class="date">posted on: ${((response.time).split(/[T\:\s]+/))[0]}</p>
       </div>
   `;
 
