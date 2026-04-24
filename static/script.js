@@ -52,13 +52,13 @@ function get_tweets() {
       <div id="uhuh">
 
       <div id="likes">
-      <button class="like-button" ${response[index][3] ? "disabled" : ""}>Like</button>
+      <button class="like-button" ${response[index][5] ? "disabled" : ""}>Like</button>
       <p>likes:</p>
       <p class="like-count">${response[index][2]}</p>
       </div> 
 
       <div id="dislikes">
-      <button class="dislike-button" ${response[index][3] ? "disabled" : ""}>Dislike</button>
+      <button class="dislike-button" ${response[index][5] ? "disabled" : ""}>Dislike</button>
       <p>dislikes:</p>
       <p class="dislike-count">${response[index][3]}</p>
       </div>
@@ -95,6 +95,7 @@ function post_tweets(text,likes,POEID) {
  
 
 let postHTML = `
+
      <div class="post" id="post`+ response.id +`">
       <p class="content">${text}</p>
       <div id="uhuh">
