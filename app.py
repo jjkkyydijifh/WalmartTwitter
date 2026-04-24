@@ -37,10 +37,7 @@ def index():
 def get_posts():
     user_id = request.cookies.get("user_id")
 
-    conn = psycopg2.connect(host="localhost",
-        dbname="postgres",
-        user="postgres",
-        password="Changeme1")
+    conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -68,17 +65,17 @@ def create_post():
  post_id = request.form.get("postID")
  TIME = datetime.now(timezone.utc)
  print(post_id)
- conn = psycopg2.connect(host="localhost",
-        dbname="postgres",
-        user="postgres",
-        password="Changeme1")
+ conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
  cursor = conn.cursor()
  cursor.execute("INSERT INTO tweets (text, likes, dislikes, date) VALUES (%s, %s, %s, %s) RETURNING id", [text, 0, 0, TIME])
  x = cursor.fetchone()
 
  conn.commit()
  conn.close()
- return jsonify(x,(TIME).isoformat())
+ jsonify({
+    "id": x[0],
+    "time": TIME.isoformat()
+})
 
 
 @app.route("/api/update_post", methods=["POST"])
@@ -87,10 +84,7 @@ def update_post():
     post_id = request.form.get("postID")
     liked = request.form.get("likes") == "true"
     print(liked)
-    conn = psycopg2.connect(host="localhost",
-        dbname="postgres",
-        user="postgres",
-        password="Changeme1")
+    conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
     cursor = conn.cursor()
 
     # check if already liked
@@ -137,4 +131,4 @@ def update_post():
     return "ok"
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
