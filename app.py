@@ -72,10 +72,7 @@ def create_post():
 
  conn.commit()
  conn.close()
- jsonify({
-    "id": x[0],
-    "time": TIME.isoformat()
-})
+ return jsonify({ "id": x[0], "time": TIME.isoformat()})
 
 
 @app.route("/api/update_post", methods=["POST"])
