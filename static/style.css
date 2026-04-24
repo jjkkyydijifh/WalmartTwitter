@@ -4,6 +4,7 @@ body {
             display: flex;
             flex-direction:column;
              align-content: flex-end;
+             align-items: center;
             height: 100vh;
             margin: 0;
         }
@@ -30,6 +31,7 @@ body {
             border: 1px solid #ccc;
             border-radius: 10%;
             text-align: center;
+            width:20%
         }
 
         #post-text {
@@ -57,4 +59,29 @@ body {
         #post-submit:hover {
             background-color: #0056b3;
         }
-
+        #uhuh{
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            padding: 20px;
+        }
+        .like-button{
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            text-align: center;
+            background: white;
+            padding: 10px;
+        }
+        .dislike-button{
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            text-align: center;
+            background: white;
+            padding: 10px;
+        }
+        .content{
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            text-align: center;
+            padding: 10px;
+        }
