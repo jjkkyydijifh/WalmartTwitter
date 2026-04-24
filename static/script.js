@@ -7,8 +7,6 @@ function make_a_tweet(text,likes,POEID){
   post_tweets(text,likes,POEID)
   
 
-  
-
 }
 
 //just call posttweet with the old id
@@ -27,7 +25,7 @@ $(document).on('click', '.like-button', function() {
 });
 
 $(document).on('click', '.dislike-button', function() {
-  let count = $(this).siblings('.like-count');
+  let count = $(this).siblings('.dislike-count');
   $(this).prop("disabled", true);
   $(this).siblings(".like-button").prop("disabled", true);
   console.log($(this).parent())
@@ -51,10 +49,23 @@ function get_tweets() {
       let postHTML = `
     <div class="post" id="post`+ response[index][0] +`">
       <p class="content">${response[index][1]}</p>
+      <div id="uhuh">
+
+      <div id="likes">
       <button class="like-button" ${response[index][3] ? "disabled" : ""}>Like</button>
-<button class="dislike-button" ${response[index][3] ? "disabled" : ""}>Dislike</button>
+      <p>likes:</p>
       <p class="like-count">${response[index][2]}</p>
-    </div>
+      </div> 
+
+      <div id="dislikes">
+      <button class="dislike-button" ${response[index][3] ? "disabled" : ""}>Dislike</button>
+      <p>dislikes:</p>
+      <p class="dislike-count">${response[index][3]}</p>
+      </div>
+
+      </div>
+      <p class="date">posted on: ${(response[index][4].split(/[T\:\s]+/))[0]}</p>
+      </div>
   `;
 
   $("body").append(postHTML);
@@ -84,12 +95,25 @@ function post_tweets(text,likes,POEID) {
  
 
 let postHTML = `
-    <div class="post" id="post${response}">
+     <div class="post" id="post`+ response[0] +`">
       <p class="content">${text}</p>
+      <div id="uhuh">
+      
+      <div id="likes">
       <button class="like-button">Like</button>
-      <button class="dislike-button">Dislike</button>
+      <p>likes:</p>
       <p class="like-count">0</p>
-    </div>
+      </div> 
+
+      <div id="dislikes">
+      <button class="dislike-button">Dislike</button>
+      <p>dislikes:</p>
+      <p class="dislike-count">0</p>
+      </div>
+
+      </div>
+      <p class="date">posted on: ${(response[1].split(/[T\:\s]+/))[0]}</p>
+      </div>
   `;
 
   $("body").append(postHTML);
@@ -106,7 +130,7 @@ function update_tweets(liked, POEID, count, button){
   if (liked === "true"){
         count.text(parseInt(count.text()) + 1);
       } else {
-        count.text(parseInt(count.text()) - 1);
+        count.text(parseInt(count.text()) + 1);
 }
   
 $.ajax({
@@ -133,7 +157,7 @@ $.ajax({
             if (liked === "true"){
         count.text(parseInt(count.text()) - 1);
       } else {
-        count.text(parseInt(count.text()) + 1);
+        count.text(parseInt(count.text()) - 1);
 }
 
 let parent = button.parent();
