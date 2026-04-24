@@ -128,11 +128,7 @@ let postHTML = `
 
 function update_tweets(liked, POEID, count, button){
 
-  if (liked === "true"){
-        count.text(parseInt(count.text()) + 1);
-      } else {
-        count.text(parseInt(count.text()) + 1);
-}
+count.text(parseInt(count.text()) + 1);
   
 $.ajax({
  url: "/api/update_post",
@@ -154,12 +150,9 @@ $.ajax({
   
  },
  error: function(err) {
-            console.error(err);
-            if (liked === "true"){
+      
         count.text(parseInt(count.text()) - 1);
-      } else {
-        count.text(parseInt(count.text()) - 1);
-}
+
 
 let parent = button.parent();
     parent.find(".like-button").prop("disabled", false);
