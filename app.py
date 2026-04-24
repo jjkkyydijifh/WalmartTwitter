@@ -6,6 +6,11 @@ from flask_limiter.util import get_remote_address
 import uuid
 from flask import make_response
 import os
+from datetime import datetime, timezone
+
+# Get current UTC time (timezone-aware)
+
+
 
 app = Flask(__name__)
 
@@ -32,11 +37,14 @@ def index():
 def get_posts():
     user_id = request.cookies.get("user_id")
 
-    conn = psycopg2.connect(os.environ["DATABASE_URL"],sslmode="require")
+    conn = psycopg2.connect(host="localhost",
+        dbname="postgres",
+        user="postgres",
+        password="Changeme1")
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT t.id, t.text, t.likes,
+        SELECT t.id, t.text, t.likes, t.dislikes, t.date,
         EXISTS (
             SELECT 1 FROM likes l
             WHERE l.post_id = t.id AND l.user_id = %s
@@ -57,18 +65,20 @@ def editor_page():
 @limiter.limit("50 per hour")
 def create_post():
  text = request.form.get("text")
- likes = request.form.get("likes")
- date = request.form.get("date")
  post_id = request.form.get("postID")
+ TIME = datetime.now(timezone.utc)
  print(post_id)
- conn = psycopg2.connect(os.environ["DATABASE_URL"],sslmode="require")
+ conn = psycopg2.connect(host="localhost",
+        dbname="postgres",
+        user="postgres",
+        password="Changeme1")
  cursor = conn.cursor()
- cursor.execute("INSERT INTO tweets (text, likes, date) VALUES (%s, %s, %s) RETURNING id", [text, 0, date])
+ cursor.execute("INSERT INTO tweets (text, likes, dislikes, date) VALUES (%s, %s, %s, %s) RETURNING id", [text, 0, 0, TIME])
  x = cursor.fetchone()
 
  conn.commit()
  conn.close()
- return jsonify(x[0])
+ return jsonify(x,(TIME).isoformat())
 
 
 @app.route("/api/update_post", methods=["POST"])
@@ -77,7 +87,10 @@ def update_post():
     post_id = request.form.get("postID")
     liked = request.form.get("likes") == "true"
     print(liked)
-    conn = psycopg2.connect(os.environ["DATABASE_URL"],sslmode="require")
+    conn = psycopg2.connect(host="localhost",
+        dbname="postgres",
+        user="postgres",
+        password="Changeme1")
     cursor = conn.cursor()
 
     # check if already liked
@@ -114,7 +127,7 @@ def update_post():
 
 
         cursor.execute(
-            "UPDATE tweets SET likes = likes - 1 WHERE id = %s",
+            "UPDATE tweets SET dislikes = dislikes + 1 WHERE id = %s",
             (post_id,)
         )
 
