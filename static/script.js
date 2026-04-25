@@ -21,7 +21,7 @@ $(document).on('click', '.like-button', function() {
   console.log($(this).parent())
   console.log("you liked post number " + parseInt((($(this).parent()).parent()).parent().attr('id').slice(4)))
   console.log("it has " + parseInt($(this).siblings('.like-count').text()) + " likes")
-  update_tweets("true",parseInt($(this).parent().attr('id').slice(4)),count,$(this))
+  update_tweets("true",parseInt((($(this).parent()).parent()).parent().attr('id').slice(4)),count,$(this))
 });
 
 $(document).on('click', '.dislike-button', function() {
@@ -31,7 +31,7 @@ $(document).on('click', '.dislike-button', function() {
   console.log($(this).parent())
   console.log("you disliked post number " + parseInt((($(this).parent()).parent()).parent().attr('id').slice(4)))
   console.log("it has " + parseInt($(this).siblings('.dislike-count').text()) + " dislikes")
-  update_tweets("false",parseInt($(this).parent().attr('id').slice(4)),count,$(this))
+  update_tweets("false",parseInt((($(this).parent()).parent()).parent().attr('id').slice(4)),count,$(this))
 });
 
 // for old tweets
