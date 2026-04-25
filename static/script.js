@@ -134,7 +134,7 @@ $.ajax({
  url: "/api/update_post",
  type: 'POST',
  data: {
-  likes:'true',
+  likes:liked,
   postID: POEID
  },
  success: function (response) {
