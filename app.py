@@ -84,39 +84,25 @@ def update_post():
     conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
     cursor = conn.cursor()
 
-    # check if already liked
+    # check if already interacted with 
+    
+    exists = cursor.fetchone()
+
+    if exists:
+        return "Already reacted", 400
+
+    # mark as reacted (using likes table as a generic tracker)
     cursor.execute(
-        "SELECT * FROM likes WHERE user_id = %s AND post_id = %s",
+        "INSERT INTO likes (user_id, post_id) VALUES (%s, %s)",
         (user_id, post_id)
     )
-    exists = cursor.fetchone()
-    print(exists)
+
     if liked:
-        if exists:
-            return "Already liked", 400
-
-        # add like
-        cursor.execute(
-            "INSERT INTO likes (user_id, post_id) VALUES (%s, %s)",
-            (user_id, post_id)
-        )
-
         cursor.execute(
             "UPDATE tweets SET likes = likes + 1 WHERE id = %s",
             (post_id,)
         )
-
     else:
-        if  exists:
-            return "Not liked yet", 400
-
-        # remove like
-        cursor.execute(
-            "INSERT INTO likes (user_id, post_id) VALUES (%s, %s)",
-            (user_id, post_id)
-        )
-
-
         cursor.execute(
             "UPDATE tweets SET dislikes = dislikes + 1 WHERE id = %s",
             (post_id,)
@@ -125,7 +111,7 @@ def update_post():
     conn.commit()
     conn.close()
 
-    return exists
+    return "ok"
 
 if __name__ == "__main__":
     app.run(debug=True)
