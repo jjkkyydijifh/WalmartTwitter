@@ -99,19 +99,17 @@ def update_post():
 
     if liked:
         cursor.execute(
-            "UPDATE tweets SET likes = likes + 1 WHERE id = %s",
-            (post_id,)
+            "UPDATE tweets SET likes = likes + 1 WHERE id = %s", (post_id)
         )
     else:
         cursor.execute(
-            "UPDATE tweets SET dislikes = dislikes + 1 WHERE id = %s",
-            (post_id,)
+            "UPDATE tweets SET dislikes = dislikes + 1 WHERE id = %s", (post_id)
         )
 
     conn.commit()
     conn.close()
 
-    return (post_id)
+    return "ok"
 
 if __name__ == "__main__":
     app.run(debug=True)
