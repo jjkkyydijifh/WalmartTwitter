@@ -85,21 +85,21 @@ def update_post():
     cursor = conn.cursor()
 
     # check if already interacted with 
-    cursor.execute(
-    "SELECT 1 FROM likes WHERE user_id = %s AND post_id = %s",
-    (user_id, post_id)
-)
+    #cursor.execute(
+    #"SELECT 1 FROM likes WHERE user_id = %s AND post_id = %s",
+    #(user_id, post_id)
+#)
     
-    exists = cursor.fetchone()
+    #exists = cursor.fetchone()
 
-    if exists:
-        return "Already reacted", 400
+    #if exists:
+        #return "Already reacted", 400
 
     # mark as reacted (using likes table as a generic tracker)
-    cursor.execute(
-        "INSERT INTO likes (user_id, post_id) VALUES (%s, %s)",
-        (user_id, post_id)
-    )
+    #cursor.execute(
+        #"INSERT INTO likes (user_id, post_id) VALUES (%s, %s)",
+        #(user_id, post_id)
+    #)
 
     if liked:
         cursor.execute(
