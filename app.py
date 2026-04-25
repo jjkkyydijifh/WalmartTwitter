@@ -125,7 +125,7 @@ def update_post():
     conn.commit()
     conn.close()
 
-    return liked
+    return exists
 
 if __name__ == "__main__":
     app.run(debug=True)
