@@ -30,7 +30,7 @@ $(document).on('click', '.dislike-button', function() {
   $(this).siblings(".like-button").prop("disabled", true);
   console.log($(this).parent())
   console.log("you disliked post number " + parseInt($(this).parent().attr('id').slice(4)))
-  console.log("it has " + parseInt($(this).siblings('.like-count').text()) + " likes")
+  console.log("it has " + parseInt($(this).siblings('.dislike-count').text()) + " dislikes")
   update_tweets("false",parseInt($(this).parent().attr('id').slice(4)),count,$(this))
 });
 
