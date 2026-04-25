@@ -1,153 +1,120 @@
-$(document).ready(function() {
-  
-  get_tweets()
-//for new tweets 
-function make_a_tweet(text,likes,POEID){
-  
-  post_tweets(text,likes,POEID)
-  
+from flask import Flask, render_template, jsonify, request, redirect
+import psycopg2
+import math
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import uuid
+from flask import make_response
+import os
+from datetime import datetime, timezone
 
-}
+# Get current UTC time (timezone-aware)
 
-//just call posttweet with the old id
-$("#post-submit").on('click', function() {
-  make_a_tweet($("#post-text").val(), 0,"new");
-});
 
-$(document).on('click', '.like-button', function() {
-  let count = $(this).siblings('.like-count');
-  $(this).prop("disabled", true);
-  $(this).siblings(".dislike-button").prop("disabled", true);
-  console.log($(this).parent())
-  console.log("you liked post number " + parseInt((($(this).parent()).parent()).parent().attr('id').slice(4)))
-  console.log("it has " + parseInt($(this).siblings('.like-count').text()) + " likes")
-  update_tweets("true",parseInt($(this).parent().attr('id').slice(4)),count,$(this))
-});
 
-$(document).on('click', '.dislike-button', function() {
-  let count = $(this).siblings('.dislike-count');
-  $(this).prop("disabled", true);
-  $(this).siblings(".like-button").prop("disabled", true);
-  console.log($(this).parent())
-  console.log("you disliked post number " + parseInt((($(this).parent()).parent()).parent().attr('id').slice(4)))
-  console.log("it has " + parseInt($(this).siblings('.dislike-count').text()) + " dislikes")
-  update_tweets("false",parseInt($(this).parent().attr('id').slice(4)),count,$(this))
-});
+app = Flask(__name__)
 
-// for old tweets
-function get_tweets() {
- $.ajax({
- url: "/api/posts",
- type: 'GET',
+limiter = Limiter(get_remote_address, app=app)
 
- success: function (response) {
-  
-  console.log(response)
-  for (let index = 0; index < response.length; index++) {
-    console.log(response[index])    
+
+
+# Database initialization
+
+# Routes
+@app.route("/")
+def index():
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        user_id = str(uuid.uuid4())
+
+    resp = make_response(render_template("index.html"))
+    resp.set_cookie("user_id", user_id)
+
+    return resp
+
+@app.route("/api/posts")
+def get_posts():
+    user_id = request.cookies.get("user_id")
+
+    conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT t.id, t.text, t.likes, t.dislikes, t.date,
+        EXISTS (
+            SELECT 1 FROM likes l
+            WHERE l.post_id = t.id AND l.user_id = %s
+        ) as liked
+        FROM tweets t
+    """, (user_id,))
+
+    results = cursor.fetchall()
+    conn.close()
+
+    return jsonify(results)
+@app.route("/editor")
+def editor_page():
+ return render_template("editor.html")
+
+@app.route("/api/create_post", methods=["POST"])
+@limiter.limit("5 per minute")
+@limiter.limit("50 per hour")
+def create_post():
+ text = request.form.get("text")
+ post_id = request.form.get("postID")
+ TIME = datetime.now(timezone.utc)
+ print(post_id)
+ conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+ cursor = conn.cursor()
+ cursor.execute("INSERT INTO tweets (text, likes, dislikes, date) VALUES (%s, %s, %s, %s) RETURNING id", [text, 0, 0, TIME])
+ x = cursor.fetchone()
+
+ conn.commit()
+ conn.close()
+ return jsonify({ "id": x[0], "time": TIME.isoformat()})
+
+
+@app.route("/api/update_post", methods=["POST"])
+def update_post():
+    user_id = request.cookies.get("user_id")
+    post_id = int(request.form.get("postID"))
+    liked = request.form.get("likes") == "true"
+    with open("blanktext.txt", "w") as f:
+        print(liked, file=f)
+    conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+    cursor = conn.cursor()
+
+    # check if already interacted with 
+    cursor.execute(
+    "SELECT 1 FROM likes WHERE user_id = %s AND post_id = %s",
+    (user_id, post_id)
+)
     
-      let postHTML = `
-    <div class="post" id="post`+ response[index][0] +`">
-      <p class="content">${response[index][1]}</p>
-      <div id="uhuh">
+    exists = cursor.fetchone()
 
-      <div id="likes">
-      <button class="like-button" ${response[index][5] ? "disabled" : ""}>Like</button>
-      <p>likes:</p>
-      <p class="like-count">${response[index][2]}</p>
-      </div> 
+    if exists:
+        return "Already reacted", 400
 
-      <div id="dislikes">
-      <button class="dislike-button" ${response[index][5] ? "disabled" : ""}>Dislike</button>
-      <p>dislikes:</p>
-      <p class="dislike-count">${response[index][3]}</p>
-      </div>
+    # mark as reacted (using likes table as a generic tracker)
+    cursor.execute(
+        "INSERT INTO likes (user_id, post_id) VALUES (%s, %s)",
+        (user_id, post_id)
+    )
 
-      </div>
-      <p class="date">posted on: ${(response[index][4].split(/[T\:\s]+/))[0]}</p>
-      </div>
-  `;
+    if liked:
+        cursor.execute(
+            "UPDATE tweets SET likes = likes + 1 WHERE id = %s", (post_id)
+        )
+    else:
+        cursor.execute(
+            "UPDATE tweets SET dislikes = dislikes + 1 WHERE id = %s", (post_id)
+        )
 
-  $("body").append(postHTML);
+    conn.commit()
+    conn.close()
 
-  }
- 
- },
- error: function(err) {
-            console.error(err);
-        }
- });
-}
+    return "ok"
 
-function post_tweets(text,likes,POEID) {
- $.ajax({
- url: "/api/create_post",
- type: 'POST',
- data: {
-  text:text,
-  likes:likes,
-  date:"8/4/1423",
-  postID: POEID
- },
- success: function (response) {
-  console.log(response)
-
- 
-
-let postHTML = `
-
-     <div class="post" id="post`+ response.id +`">
-      <p class="content">${text}</p>
-      <div id="uhuh">
-      
-      <div id="likes">
-      <button class="like-button">Like</button>
-      <p>likes:</p>
-      <p class="like-count">0</p>
-      </div> 
-
-      <div id="dislikes">
-      <button class="dislike-button">Dislike</button>
-      <p>dislikes:</p>
-      <p class="dislike-count">0</p>
-      </div>
-
-      </div>
-      <p class="date">posted on: ${((response.time).split(/[T\:\s]+/))[0]}</p>
-      </div>
-  `;
-
-  $("body").append(postHTML);
-  
- },
- error: function(err) {
-            console.error(err);
-        }
- });
-}
-
-function update_tweets(liked, POEID, count, button){
-
-count.text(parseInt(count.text()) + 1);
-  
-$.ajax({
- url: "/api/update_post",
- type: 'POST',
- data: {
-  likes:liked,
-  postID: POEID
- },
- success: function (response) {
-  console.log(response)
- },
- error: function(err) {
-        console.log(err)
-        count.text(parseInt(count.text()) - 1);
-let parent = button.parent();
-    parent.find(".like-button").prop("disabled", false);
-    parent.find(".dislike-button").prop("disabled", false);
-        }
- });
-}
-
-})
+if __name__ == "__main__":
+    app.run(debug=True)
