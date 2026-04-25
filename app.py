@@ -85,6 +85,10 @@ def update_post():
     cursor = conn.cursor()
 
     # check if already interacted with 
+    cursor.execute(
+    "SELECT 1 FROM likes WHERE user_id = %s AND post_id = %s",
+    (user_id, post_id)
+)
     
     exists = cursor.fetchone()
 
