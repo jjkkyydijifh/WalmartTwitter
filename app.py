@@ -80,7 +80,7 @@ def update_post():
     user_id = request.cookies.get("user_id")
     post_id = int(request.form.get("postID"))
     liked = request.form.get("likes") == "true"
-    print(liked)
+    
     conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
     cursor = conn.cursor()
 
@@ -116,4 +116,4 @@ def update_post():
     return "ok"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
