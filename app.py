@@ -78,7 +78,7 @@ def create_post():
 @app.route("/api/update_post", methods=["POST"])
 def update_post():
     user_id = request.cookies.get("user_id")
-    post_id = request.form.get("postID")
+    post_id = int(request.form.get("postID"))
     liked = request.form.get("likes") == "true"
     print(liked)
     conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
