@@ -134,26 +134,15 @@ $.ajax({
  url: "/api/update_post",
  type: 'POST',
  data: {
-
-
-
   likes:liked,
-
   postID: POEID
  },
  success: function (response) {
   console.log(response)
-
-  
-  
-  
-  
  },
  error: function(err) {
-      
+        console.log(err)
         count.text(parseInt(count.text()) - 1);
-
-
 let parent = button.parent();
     parent.find(".like-button").prop("disabled", false);
     parent.find(".dislike-button").prop("disabled", false);
