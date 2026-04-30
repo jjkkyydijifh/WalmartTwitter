@@ -94,3 +94,17 @@ display: flex;
             border-radius: 10px;
             margin: 7px;
         }
+        #comment-submit{
+ border: 1px solid #ccc;
+            border-radius: 10px;
+            text-align: center;
+            background: white;
+            padding: 10px;
+        }
+        #comment-toggle{
+             border: 1px solid #ccc;
+            border-radius: 10px;
+            text-align: center;
+            background: white;
+            padding: 10px;
+        }
