@@ -67,11 +67,7 @@ function get_comments(postid,post) {
 
  success: function (response) {
   
-  console.log(response.length)
-  console.log(response[0].length)
-  console.log(response[0][0].length)
-  console.log(response[0][0][0].length)
-  console.log(response[0][0][0][0].length)
+  
   for (let index = 0; index < (response[0][0]).length; index++) {
         
     
