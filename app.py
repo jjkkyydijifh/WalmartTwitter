@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, jsonify, request, redirect
 import psycopg2
 import math
@@ -38,6 +39,7 @@ def get_posts():
     user_id = request.cookies.get("user_id")
 
     conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -66,6 +68,7 @@ def create_post():
  TIME = datetime.now(timezone.utc)
  print(post_id)
  conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+
  cursor = conn.cursor()
  cursor.execute("INSERT INTO tweets (text, likes, dislikes, date) VALUES (%s, %s, %s, %s) RETURNING id", [text, 0, 0, TIME])
  x = cursor.fetchone()
@@ -82,6 +85,7 @@ def update_post():
     liked = request.form.get("likes") == "true"
     
     conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+
     cursor = conn.cursor()
 
     # check if already interacted with 
@@ -115,5 +119,42 @@ def update_post():
 
     return "ok"
 
+@app.route("/api/add_comments", methods=["POST"])
+def add_comments():
+    try:
+        user_id = request.cookies.get("user_id")
+        post_id = int(request.form.get("postID"))
+        comment = request.form.get("comment")
+        print(post_id)
+        conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+
+        cursor = conn.cursor()
+        
+        cursor.execute("UPDATE tweets SET comments = array_append(comments, %s) WHERE id = %s",(comment,post_id))
+        
+        conn.commit()
+        conn.close()
+
+        return "ok"
+    except Exception as e:
+        return jsonify({"its fubernucked": str(e)}), 500
+
+
+
+@app.route("/api/comments", methods=["GET"])
+def get_comments():
+    #user_id = request.cookies.get("user_id")
+    post_id = int(request.args.get("post_id"))
+    conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+    cursor = conn.cursor()
+
+    cursor.execute("""SELECT comments FROM tweets WHERE id=%s""",(post_id,))
+
+    results = cursor.fetchall()
+    conn.close()
+    return jsonify(results)
+
+
+
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
