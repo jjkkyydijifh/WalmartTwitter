@@ -85,3 +85,12 @@ body {
             text-align: center;
             padding: 10px;
         }
+        .comment-content{
+display: flex;
+            flex-direction:column;
+        }
+        .comment{
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin: 7px;
+        }
