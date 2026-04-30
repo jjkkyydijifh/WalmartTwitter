@@ -34,6 +34,62 @@ $(document).on('click', '.dislike-button', function() {
   update_tweets("false",parseInt((($(this).parent()).parent()).parent().attr('id').slice(4)),count,$(this))
 });
 
+$(document).on('click', '#comment-submit', function() {
+  let comment = $(this).siblings('#comment-text').val();
+  let idpo = parseInt((($(this).parent()).parent()).attr('id').slice(4))
+  console.log(idpo)
+  add_comment(idpo,comment,$(this))
+});
+
+$(document).on('click', '#comment-toggle', function() {
+  //console.log("im on!")
+  if ($(this).siblings(".comment-content").is(':empty')) {
+    // Div is empty
+    let idpo = parseInt((($(this).parent()).parent()).attr('id').slice(4))
+  console.log(idpo)
+  get_comments(idpo,$(this))
+
+}else{
+  //remove all comments
+$(this).siblings(".comment-content").empty();
+}
+  });
+
+function get_comments(postid,post) {
+
+ $.ajax({
+ url: "/api/comments",
+ type: 'GET',
+ data:{
+ post_id: postid
+ },
+ 
+
+ success: function (response) {
+  
+  console.log(response.length)
+  console.log(response[0].length)
+  console.log(response[0][0].length)
+  console.log(response[0][0][0].length)
+  console.log(response[0][0][0][0].length)
+  for (let index = 0; index < (response[0][0]).length; index++) {
+        
+    
+  let postHTML = `
+      <p class='comment'> ${response[0][0][index]}</p>
+  `;
+
+  post.siblings(".comment-content").append(postHTML);
+
+  }
+ 
+ },
+ error: function(err) {
+            console.error(err);
+        }
+ });
+}
+
 // for old tweets
 function get_tweets() {
  $.ajax({
@@ -65,6 +121,16 @@ function get_tweets() {
 
       </div>
       <p class="date">posted on: ${(response[index][4].split(/[T\:\s]+/))[0]}</p>
+
+      <div id="comments">
+  <input id="comment-text" type="text" maxlength="180">
+<button id="comment-submit">post comment</button>
+<button id="comment-toggle">toggle comments</button>
+<div class="comment-content">
+
+</div>
+
+      </div>
       </div>
   `;
 
@@ -114,6 +180,15 @@ let postHTML = `
 
       </div>
       <p class="date">posted on: ${((response.time).split(/[T\:\s]+/))[0]}</p>
+
+
+       <div id="comments">
+  <input id="comment-text" type="text" maxlength="180">
+<button id="comment-submit">post comment</button>
+<button id="comment-toggle">toggle comments</button>
+<div class="comment-content">
+
+
       </div>
   `;
 
@@ -151,3 +226,32 @@ let parent = button.parent();
 }
 
 })
+
+function add_comment(POEID,comment,thing){
+
+console.log(POEID,comment,thing)
+
+$.ajax({
+ url: "/api/add_comments",
+ type: 'POST',
+ data: {
+  comment:comment,
+  postID: POEID
+ },
+ success: function (response) {
+  console.log(response)
+
+let postHTML = `
+      <p class='comment'> ${comment}</p>
+  
+  `;
+
+    thing.siblings(".comment-content").append(postHTML)
+ },
+  error: function(err) {
+        console.log(err)
+        
+        }
+ });
+  
+}
