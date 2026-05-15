@@ -1,17 +1,43 @@
 $(document).ready(function() {
-  
+ 
   get_tweets()
 //for new tweets 
 function make_a_tweet(text,likes,POEID){
-  
+  if($("#post-text").val() == ''){
+    console.log("oui monseur")
+  }else{
   post_tweets(text,likes,POEID)
+  $("#post-text").val("")
+  $(".char_count").text("0/180")
+  }
   
-
 }
 
 //just call posttweet with the old id
 $("#post-submit").on('click', function() {
   make_a_tweet($("#post-text").val(), 0,"new");
+});
+
+//word count
+$('#post-text').on('input', function() {
+    console.log('Value changed to: ' + ($(this).val()).length);
+    $(".char_count").text((($(this).val()).length) + "/180")
+});
+
+
+//indacate if you can or cant post
+$('#post-submit').mouseenter(function() {
+  if($("#post-text").val() == ''){
+    $(this).css('background-color', '#2c2e2d'); // Force base color on hover
+  }else{
+    $(this).css('background-color', '#708faf'); // Force base color on hover
+  }
+});
+
+$('#post-submit').mouseleave(function() {
+  
+    $(this).css('background-color', '#5ab789'); // Force base color on hover
+  
 });
 
 $(document).on('click', '.like-button', function() {
@@ -42,12 +68,29 @@ $(document).on('click', '#comment-submit', function() {
 });
 
 $(document).on('click', '#comment-toggle', function() {
+
+  let button2 = $(this);
   //console.log("im on!")
   if ($(this).siblings(".comment-content").is(':empty')) {
     // Div is empty
     let idpo = parseInt((($(this).parent()).parent()).attr('id').slice(4))
   console.log(idpo)
-  get_comments(idpo,$(this))
+  get_comments(idpo).done(function(response){
+
+    console.log(response)
+
+for (let index = 0; index < (response[0][0]).length; index++) {
+        
+    
+  let postHTML = `
+      <p class='comment'> ${response[0][0][index]}</p>
+  `;
+
+  button2.siblings(".comment-content").append(postHTML);
+
+  }
+
+  })
 
 }else{
   //remove all comments
@@ -55,51 +98,45 @@ $(this).siblings(".comment-content").empty();
 }
   });
 
-function get_comments(postid,post) {
+function get_comments(postid) {
 
- $.ajax({
- url: "/api/comments",
- type: 'GET',
- data:{
- post_id: postid
- },
- 
+ return $.ajax({
+    url: "/api/comments",
+    type: 'GET',
+    data:{
+        post_id: postid
+    },
 
- success: function (response) {
-  
-  console.log(response.length)
-  console.log(response[0].length)
-  console.log(response[0][0].length)
-  console.log(response[0][0][0].length)
-  console.log(response[0][0][0][0].length)
-  for (let index = 0; index < (response[0][0]).length; index++) {
+
+
+    error: function(err) {
+        console.error(err);
         
-    
-  let postHTML = `
-      <p class='comment'> ${response[0][0][index]}</p>
-  `;
-
-  post.siblings(".comment-content").append(postHTML);
-
-  }
- 
- },
- error: function(err) {
-            console.error(err);
-        }
+    }
  });
+
 }
 
 // for old tweets
 function get_tweets() {
+ 
+
  $.ajax({
  url: "/api/posts",
  type: 'GET',
 
  success: function (response) {
   
+  
   console.log(response)
   for (let index = 0; index < response.length; index++) {
+
+     get_comments(response[index][0]).done(function(response3){
+let num_com = 0
+    if(response3[0][0] != null){
+      num_com = response3[0][0].length
+    }
+
     console.log(response[index])    
     
       let postHTML = `
@@ -124,9 +161,10 @@ function get_tweets() {
       <p class="date">posted on: ${(response[index][4].split(/[T\:\s]+/))[0]}</p>
 
       <div id="comments">
+      
   <input id="comment-text" type="text" maxlength="180">
 <button id="comment-submit">post comment</button>
-<button id="comment-toggle">toggle comments</button>
+<button id="comment-toggle">toggle comments<p class="comment_count">${num_com}</p></button>
 <div class="comment-content">
 
 </div>
@@ -137,6 +175,10 @@ function get_tweets() {
 
   $("body").append(postHTML);
 
+    
+  })
+
+    
   }
  
  },
@@ -187,7 +229,7 @@ let postHTML = `
        <div id="comments">
   <input id="comment-text" type="text" maxlength="180">
 <button id="comment-submit">post comment</button>
-<button id="comment-toggle">toggle comments</button>
+<button id="comment-toggle">toggle comments<p class="comment_count">0</p></button>
 <div class="comment-content">
 
 
@@ -199,6 +241,9 @@ let postHTML = `
  },
  error: function(err) {
             console.error(err);
+            if (err.status === 429) {
+        alert("You are posting too fast or attempting to spam the site.");
+    }
         }
  });
 }
@@ -247,7 +292,8 @@ let postHTML = `
       <p class='comment'> ${comment}</p>
   
   `;
-
+    thing.siblings("#comment-toggle").find(".comment_count").text(parseInt(thing.siblings("#comment-toggle").find(".comment_count").text()) + 1)
+    thing.siblings("#comment-text").val("")
     thing.siblings(".comment-content").append(postHTML)
  },
   error: function(err) {
