@@ -47,11 +47,12 @@ def index():
 @app.route("/api/posts")
 def get_posts():
     user_id = request.cookies.get("user_id")
-    conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+
+    conn = psycopg2.connect(host = 'localhost' , dbname='postgres' , user='postgres' , password='Changeme1')
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT t.id, t.text, t.likes, t.dislikes, t.date,
+        SELECT t.id, t.text, t.likes, t.dislikes, t.date, t.reports,
         EXISTS (
             SELECT 1 FROM likes l
             WHERE l.post_id = t.id AND l.user_id = %s
@@ -75,9 +76,9 @@ def create_post():
  post_id = request.form.get("postID")
  TIME = datetime.now(timezone.utc)
  print(post_id)
- conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+ conn = psycopg2.connect(host = 'localhost' , dbname='postgres' , user='postgres' , password='Changeme1')
  cursor = conn.cursor()
- cursor.execute("INSERT INTO tweets (text, likes, dislikes, date) VALUES (%s, %s, %s, %s) RETURNING id", [text, 0, 0, TIME])
+ cursor.execute("INSERT INTO tweets (text, likes, dislikes, date, reports) VALUES (%s, %s, %s, %s, %s) RETURNING id", [text, 0, 0, TIME, 0])
  x = cursor.fetchone()
 
  conn.commit()
@@ -91,7 +92,7 @@ def update_post():
     post_id = int(request.form.get("postID"))
     liked = request.form.get("likes") == "true"
     
-    conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+    conn = psycopg2.connect(host = 'localhost' , dbname='postgres' , user='postgres' , password='Changeme1')
     cursor = conn.cursor()
 
     # check if already interacted with 
@@ -125,6 +126,42 @@ def update_post():
 
     return "ok"
 
+@app.route("/api/report_post", methods=["POST"])
+def report_post():
+    user_id = request.cookies.get("user_id")
+    post_id = int(request.form.get("postID"))
+    print(str(post_id) + ": this is the id++++++++++++++++++++++++++++++++++++++++++++++++")
+    conn = psycopg2.connect(host = 'localhost' , dbname='postgres' , user='postgres' , password='Changeme1')
+    cursor = conn.cursor()
+
+    # check if already interacted with 
+    cursor.execute(
+    "SELECT 1 FROM reported WHERE user_id = %s AND post_id = %s",
+    (user_id, post_id)
+)
+    
+    exists = cursor.fetchone()
+
+    if exists:
+        return "Already reacted", 400
+
+    # mark as reacted (using likes table as a generic tracker)
+    cursor.execute(
+        "INSERT INTO reported (user_id, post_id) VALUES (%s, %s)",
+        (user_id, post_id)
+    )
+
+    
+    cursor.execute("UPDATE tweets SET reports = reports + 1 WHERE id = %s", (post_id,))
+ 
+        
+
+    conn.commit()
+    conn.close()
+
+    return "ok"
+
+
 @app.route("/api/add_comments", methods=["POST"])
 def add_comments():
     try:
@@ -132,7 +169,7 @@ def add_comments():
         post_id = int(request.form.get("postID"))
         comment = request.form.get("comment")
         print(post_id)
-        conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+        conn = psycopg2.connect(host = 'localhost' , dbname='postgres' , user='postgres' , password='Changeme1')
         cursor = conn.cursor()
         
         cursor.execute("UPDATE tweets SET comments = array_append(comments, %s) WHERE id = %s",(comment,post_id))
@@ -151,7 +188,7 @@ def get_comments():
     #user_id = request.cookies.get("user_id")
     post_id = int(request.args.get("post_id"))
 
-    conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
+    conn = psycopg2.connect(host = 'localhost' , dbname='postgres' , user='postgres' , password='Changeme1')
     cursor = conn.cursor()
 
     cursor.execute("""SELECT comments FROM tweets WHERE id=%s""",(post_id,))
