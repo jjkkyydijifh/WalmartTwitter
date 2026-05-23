@@ -207,7 +207,7 @@ let num_com = 0
 </div>
 <button class="report"><svg xmlns="http://www.w3.org/2000/svg" width="150px" height="150px" viewBox="0 0 24 24" fill="none">
 <path d="M4.5 21V16M4.5 16V6.5C5.5 5.5 7 5 8.5 5C11.5 5 13.5 7.5 17.5 5.5V15.5C13.5 17.5 11.5 14.5 8.5 14.5C7.5 14.5 5.5 15 4.5 16Z" stroke="#ffffff">
-</svg><p class="report_count">${response[index][5]}</p></button>
+</svg></button>
       </div>
       </div>
   `;
@@ -274,7 +274,7 @@ let postHTML = `
 
 <button class="report"><svg xmlns="http://www.w3.org/2000/svg" width="150px" height="150px" viewBox="0 0 24 24" fill="none">
 <path d="M4.5 21V16M4.5 16V6.5C5.5 5.5 7 5 8.5 5C11.5 5 13.5 7.5 17.5 5.5V15.5C13.5 17.5 11.5 14.5 8.5 14.5C7.5 14.5 5.5 15 4.5 16Z" stroke="#ffffff">
-</svg><p class="report_count">0</p></button>
+</svg></button>
 
       </div>
   `;
@@ -316,9 +316,7 @@ let parent = button.parent();
 }
 
 function report_tweets(POEID, count, button){
-console.log("id is " + POEID)
-count.text(parseInt(count.text()) + 1);
-  
+ 
 $.ajax({
  url: "/api/report_post",
  type: 'POST',
@@ -330,7 +328,7 @@ $.ajax({
  },
  error: function(err) {
         console.log(err)
-        count.text(parseInt(count.text()) - 1);
+       
         button.prop("disabled", false);
     
         }
