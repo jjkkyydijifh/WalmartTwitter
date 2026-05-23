@@ -43,6 +43,11 @@ body {
             font-size: 15px;
             color:#2c2e2d
         }
+        #searchbar {
+            color:#2c2e2d
+
+        }
+
 
         #post-submit {
             width: 50%;
@@ -56,9 +61,8 @@ body {
             transition: background-color 0.3s ease;
         }
 
-        #post-submit:hover {
-            background-color: #708faf;
-        }
+
+        
         #uhuh{
             display: flex;
             flex-direction: row;
@@ -90,6 +94,18 @@ color: #fff;
             color: #fff;
             padding: 15px;
             transition: background-color 0.3s ease;
+        }
+        .report{
+            border: 1px solid #3b3b3b;
+            border-radius: 10px;
+            text-align: center;
+            background-color: #2c2e2d;
+            color: #fff;
+            padding: 15px;
+            transition: background-color 0.3s ease;
+        }
+        .report:hover {
+            background-color: #aa471a;
         }
 
 .dislike-button:hover {
