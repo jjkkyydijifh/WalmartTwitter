@@ -52,7 +52,7 @@ def get_posts():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT t.id, t.text, t.likes, t.dislikes, t.date, t.reports,
+        SELECT t.id, t.text, t.likes, t.dislikes, t.date, t.reports, t.nreports,
         EXISTS (
             SELECT 1 FROM likes l
             WHERE l.post_id = t.id AND l.user_id = %s
@@ -130,6 +130,7 @@ def update_post():
 def report_post():
     user_id = request.cookies.get("user_id")
     post_id = int(request.form.get("postID"))
+    vote = (request.form.get("vote") == 'true')
     print(str(post_id) + ": this is the id++++++++++++++++++++++++++++++++++++++++++++++++")
     conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
     cursor = conn.cursor()
@@ -151,9 +152,11 @@ def report_post():
         (user_id, post_id)
     )
 
-    
-    cursor.execute("UPDATE tweets SET reports = reports + 1 WHERE id = %s", (post_id,))
- 
+    if(vote):
+        cursor.execute("UPDATE tweets SET reports = reports + 1 WHERE id = %s", (post_id,))
+    else:
+        cursor.execute("UPDATE tweets SET nreports = nreports + 1 WHERE id = %s", (post_id,))
+
         
 
     conn.commit()
