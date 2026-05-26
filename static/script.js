@@ -81,19 +81,24 @@ $(document).on('click', '.dislike-button', function() {
 $(document).on('click', '.report', function() {
   let count = $(this).find('.report_count');
   $(this).prop("disabled", true);
-  console.log($(this).parent())
-  console.log("you reported post: " + parseInt((($(this).parent()).parent()).attr('id').slice(4)))
-  let result = confirm("Are you sure you want to report this post.");
+  let result = confirm("if you click okay you comfirm that you want to vote if this post should stay");
 if (result) {
-    console.log("achhcha! hai!")
-    console.log(parseInt((($(this).parent()).parent()).attr('id').slice(4)))
-    console.log(count)
-    console.log($(this))
 
-    report_tweets(parseInt((($(this).parent()).parent()).attr('id').slice(4)),count,$(this))
+    let result2 = confirm("Are you sure you want to report this post. click okay to vote yes, and cancel to vote no");
+if (result2) {
+   this
+  console.log("this person voted for this to go")
+    report_tweets(parseInt((($(this).parent()).parent()).attr('id').slice(4)),count,$(this),('true'))
+} else {
+    console.log("this person voted for this to stay")
+    report_tweets(parseInt((($(this).parent()).parent()).attr('id').slice(4)),count,$(this),('false'))
+}
+
+
 } else {
     console.log("nahin hai :(")
 }
+
   
 });
 
@@ -165,8 +170,20 @@ function get_tweets() {
  success: function (response) {
   
   
+  
   console.log(response)
   for (let index = 0; index < response.length; index++) {
+    console.log("votes to remove: " + response[index][5])
+    console.log("votes to not remove: " + response[index][6])
+    let voter = ((response[index][5] + response[index][6]) + '/9 votes to remove have been cast')
+    if((response[index][5] + response[index][6]) >= 9){
+      if((response[index][5] > response[index][6])){
+        console.log("remove this post")
+      }else{
+        voter = "the votes say this post will stay"
+      }
+    }
+
 
      get_comments(response[index][0]).done(function(response3){
 let num_com = 0
@@ -205,16 +222,31 @@ let num_com = 0
 <div class="comment-content">
 
 </div>
-<button class="report"><svg xmlns="http://www.w3.org/2000/svg" width="150px" height="150px" viewBox="0 0 24 24" fill="none">
+<button class="report"><p>${voter}</p><svg xmlns="http://www.w3.org/2000/svg" width="150px" height="150px" viewBox="0 0 24 24" fill="none">
 <path d="M4.5 21V16M4.5 16V6.5C5.5 5.5 7 5 8.5 5C11.5 5 13.5 7.5 17.5 5.5V15.5C13.5 17.5 11.5 14.5 8.5 14.5C7.5 14.5 5.5 15 4.5 16Z" stroke="#ffffff">
 </svg></button>
       </div>
       </div>
   `;
 
-  $("body").append(postHTML);
+  
 
-    
+  if((response[index][5] > response[index][6]) && ((response[index][5] + response[index][6]) >= 9)){
+        console.log("remove this post")
+  }else{
+      $("body").append(postHTML);
+  }
+  
+if(((response[index][5] + response[index][6]) < 9)){
+      console.log('dont disable report')
+  }else{
+     console.log("disable report")
+     console.log($("#post"+ response[index][0]).find(".report"))
+     $("#post"+ response[index][0]).find(".report").prop("disabled", true);
+
+  }  
+
+
   })
 
     
@@ -315,13 +347,14 @@ let parent = button.parent();
  });
 }
 
-function report_tweets(POEID, count, button){
+function report_tweets(POEID, count, button, vote){
  
 $.ajax({
  url: "/api/report_post",
  type: 'POST',
  data: {
   postID: POEID,
+  vote: vote
  },
  success: function (response) {
   console.log(response)
