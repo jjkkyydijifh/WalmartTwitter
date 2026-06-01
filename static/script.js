@@ -110,7 +110,7 @@ $(document).on('click', '#comment-submit', function() {
 });
 
 $(document).on('click', '#comment-toggle', function() {
-
+  console.log("the comment button is clicked")
   let button2 = $(this);
   //console.log("im on!")
   if ($(this).siblings(".comment-content").is(':empty')) {
@@ -129,6 +129,10 @@ for (let index = 0; index < (response[0][0]).length; index++) {
   `;
 
   button2.siblings(".comment-content").append(postHTML);
+  console.log("EEE")
+      $(".comment").animate({margin: "7px"},400,"swing");
+      console.log(button2.siblings(".comment-content").find(".comment_arrow"))
+      button2.find(".comment_arrow").css('transform', 'rotate(180deg)');
 
   }
 
@@ -136,7 +140,13 @@ for (let index = 0; index < (response[0][0]).length; index++) {
 
 }else{
   //remove all comments
-$(this).siblings(".comment-content").empty();
+  button2.find(".comment_arrow").css('transform', 'rotate(0deg)');
+
+  $(".comment").animate({margin: "-11px"},1600,"swing",function(){
+button2.siblings(".comment-content").empty();
+console.log("alright cleaning up!")
+  });
+
 }
   });
 
@@ -218,14 +228,15 @@ let num_com = 0
       
   <input id="comment-text" type="text" maxlength="180">
 <button id="comment-submit">post comment</button>
-<button id="comment-toggle">toggle comments<p class="comment_count">${num_com}</p></button>
-<div class="comment-content">
+<button id="comment-toggle">toggle comments<p class="comment_count">${num_com}</p><svg class="comment_arrow" xmlns="http://www.w3.org/2000/svg" width="150px" height="150px" viewBox="0 0 24 24" fill="none">
+<path d="M15 11L12 8M12 8L9 11M12 8V16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></button>
+<div class="comment-content"></div>
 
-</div>
-<button class="report"><p>${voter}</p><svg xmlns="http://www.w3.org/2000/svg" width="150px" height="150px" viewBox="0 0 24 24" fill="none">
+      </div>
+      <button class="report"><p>${voter}</p><svg xmlns="http://www.w3.org/2000/svg" width="150px" height="150px" viewBox="0 0 24 24" fill="none">
 <path d="M4.5 21V16M4.5 16V6.5C5.5 5.5 7 5 8.5 5C11.5 5 13.5 7.5 17.5 5.5V15.5C13.5 17.5 11.5 14.5 8.5 14.5C7.5 14.5 5.5 15 4.5 16Z" stroke="#ffffff">
 </svg></button>
-      </div>
       </div>
   `;
 
@@ -301,7 +312,9 @@ let postHTML = `
   <input id="comment-text" type="text" maxlength="180">
 <button id="comment-submit">post comment</button>
 <button id="comment-toggle">toggle comments<p class="comment_count">0</p></button>
-<div class="comment-content">
+<div class="comment-content"></div>
+      </div>
+      
 
 
 <button class="report"><svg xmlns="http://www.w3.org/2000/svg" width="150px" height="150px" viewBox="0 0 24 24" fill="none">
