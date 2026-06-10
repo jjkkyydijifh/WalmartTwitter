@@ -2,11 +2,12 @@ $(document).ready(function() {
  
   get_tweets()
 //for new tweets 
-function make_a_tweet(text,likes,POEID){
+function make_a_tweet(text,likes,POEID,fileName){
+ 
   if($("#post-text").val() == ''){
     console.log("oui monseur")
   }else{
-  post_tweets(text,likes,POEID)
+  post_tweets(text,likes,POEID,fileName)
   $("#post-text").val("")
   $(".char_count").text("0/180")
   }
@@ -15,7 +16,45 @@ function make_a_tweet(text,likes,POEID){
 
 //just call posttweet with the old id
 $("#post-submit").on('click', function() {
+
+  
+
+   let file = $("#avatar")[0].files[0];
+    console.log(file);
+if (file) {
+
+    let formData = new FormData();
+
+    formData.append("avatar", file);
+
+    $.ajax({
+        url: "/api/upload_image",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+
+        success: function(response) {
+           console.log("Upload successful");
+    console.log(response); // This will now show your clean filename string
+    
+    // Capture the server's clean filename variant
+    let cleanName = response.filename;
+    
+    // Pass it cleanly to your tweet generator
+    make_a_tweet($("#post-text").val(), 0, "new", cleanName);
+        },
+
+        error: function(err) {
+            console.log("Upload failed");
+            console.log(err.responseText);
+        }
+    });
+
+}else{
   make_a_tweet($("#post-text").val(), 0,"new");
+}
+
 });
 
 //word count
@@ -182,7 +221,9 @@ function get_tweets() {
   
   
   console.log(response)
+  
   for (let index = 0; index < response.length; index++) {
+    console.log("image = " + response[index][7])
     console.log("votes to remove: " + response[index][5])
     console.log("votes to not remove: " + response[index][6])
     let voter = ((response[index][5] + response[index][6]) + '/9 votes to remove have been cast')
@@ -257,6 +298,9 @@ if(((response[index][5] + response[index][6]) < 9)){
 
   }  
 
+  if(response[index][7] != 0){
+    $(`<img src="/uploads/${response[index][7]}">`).insertAfter("#post" + response[index][0] + " > :eq(0)");
+  }
 
   })
 
@@ -270,7 +314,8 @@ if(((response[index][5] + response[index][6]) < 9)){
  });
 }
 
-function post_tweets(text,likes,POEID) {
+function post_tweets(text,likes,POEID,imgname) {
+  console.log(imgname)
  $.ajax({
  url: "/api/create_post",
  type: 'POST',
@@ -278,7 +323,8 @@ function post_tweets(text,likes,POEID) {
   text:text,
   likes:likes,
   date:"8/4/1423",
-  postID: POEID
+  postID: POEID,
+  img: imgname,
  },
  success: function (response) {
   console.log(response)
@@ -289,6 +335,7 @@ let postHTML = `
 
      <div class="post" id="post`+ response.id +`">
       <p class="content">${text}</p>
+      
       <div id="uhuh">
       
       <div id="likes">
@@ -325,6 +372,10 @@ let postHTML = `
   `;
 
   $("body").append(postHTML);
+
+  if(imgname != 0){
+    $(`<img src="/uploads/${imgname}">`).insertAfter("#post" + response.id + " > :eq(0)");
+  }
   
  },
  error: function(err) {
