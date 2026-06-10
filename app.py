@@ -1,6 +1,6 @@
 #conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
 
-from flask import Flask, render_template, jsonify, request, redirect
+from flask import Flask, render_template, jsonify, request, redirect, send_from_directory
 import psycopg2
 import math
 from flask_limiter import Limiter
@@ -9,6 +9,8 @@ import uuid
 from flask import make_response
 import os
 from datetime import datetime, timezone
+from flask import request
+from werkzeug.utils import secure_filename
 
 # Get current UTC time (timezone-aware)
 
@@ -21,6 +23,10 @@ limiter = Limiter(get_remote_address, app=app)
 
 
 # Database initialization
+
+
+
+
 
 #rate_limit
 
@@ -44,6 +50,11 @@ def index():
 
     return resp
 
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    # Adjust 'uploads' if your folder has a different absolute path
+    return send_from_directory('uploads', filename)
+
 @app.route("/api/posts")
 def get_posts():
     user_id = request.cookies.get("user_id")
@@ -52,7 +63,7 @@ def get_posts():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT t.id, t.text, t.likes, t.dislikes, t.date, t.reports, t.nreports,
+        SELECT t.id, t.text, t.likes, t.dislikes, t.date, t.reports, t.nreports, t.image,
         EXISTS (
             SELECT 1 FROM likes l
             WHERE l.post_id = t.id AND l.user_id = %s
@@ -75,15 +86,42 @@ def create_post():
  text = request.form.get("text")
  post_id = request.form.get("postID")
  TIME = datetime.now(timezone.utc)
+ img = request.form.get("img")
  print(post_id)
  conn = psycopg2.connect(os.environ.get("DATABASE_URL") or "postgresql://postgres:yourpassword@localhost:5432/postgres",sslmode="require")
  cursor = conn.cursor()
- cursor.execute("INSERT INTO tweets (text, likes, dislikes, date, reports) VALUES (%s, %s, %s, %s, %s) RETURNING id", [text, 0, 0, TIME, 0])
+ cursor.execute("INSERT INTO tweets (text, likes, dislikes, date, reports, image) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id", [text, 0, 0, TIME, 0, img])
  x = cursor.fetchone()
 
  conn.commit()
  conn.close()
  return jsonify({ "id": x[0], "time": TIME.isoformat()})
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+
+
+@app.route("/api/upload_image", methods=["POST"])
+def upload_image():
+    image = request.files.get("avatar")
+
+    if image is None:
+        return {"error": "No image uploaded"}, 400
+
+    filename = secure_filename(image.filename)
+
+    image.save(
+        os.path.join(
+            "uploads",
+            filename
+        )
+    )
+
+    # ADD THE FILENAME TO THE RETURN OBJECT
+    return {"success": True, "filename": filename}
+
 
 
 @app.route("/api/update_post", methods=["POST"])
